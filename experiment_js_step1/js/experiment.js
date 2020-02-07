@@ -3,6 +3,7 @@ var state = {
   INTERTITLE: 1,
   SHAPES: 2,
   PLACEHOLDERS: 3,
+  FINISH_EXPERIMENT: 4,
 };
 
 var timeTracker = {
@@ -16,7 +17,7 @@ var objCount = 0;
 
 var shapes = [];
 
-var recordIsCorrect = true;
+var recordIsCorrect = false;
 
 var ctx = {
   w: 1400,
@@ -40,6 +41,7 @@ var ctx = {
 };
 
 var keyListener = function (event) {
+
   event.preventDefault();
 
   if (ctx.state == state.INTERTITLE && event.code == "Enter") {
@@ -126,7 +128,7 @@ var startTrial = function () {
         });
     }
   }
-  else if (vv == "color") {
+  else if (vv == "Color") {
     for (var i = 0; i < (objCount - 1); i++) {
       shapes.push(
         {
@@ -206,7 +208,7 @@ var downloadLogs = function (event) {
 
 
   ctx.logs.forEach(function (rowData) {
-    var temp = Object.values(rowData);
+    var temp = Object.values(rowData); // This line is to convert the objects into array so that i can convert it to srting later 
     var row = temp.join(',');
     csvContent += row + "\r\n";
   })
@@ -241,30 +243,57 @@ var showPlaceholders = function () {
 }
 
 var isCorrectTarget = function () {
-  console.log(d3.select(this).datum());
+  console.log("****************" + ctx.trials[ctx.cpt][ctx.participantIndex]);
+  if (ctx.trials[ctx.cpt][ctx.participantIndex] === ctx.participant) {
+    console.log(d3.select(this).datum());
 
-  // COde to download it in csv file with adding the timer and stuff.
+    // COde to download it in csv file with adding the timer and stuff.
 
-  recordIsCorrect = d3.select(this).datum();
-  if (d3.select(this).datum()) {
-    ctx.logs[ctx.cpt].perceptionTime = timeTracker.endTime - timeTracker.startTime;
+    recordIsCorrect = d3.select(this).datum();
+    if (recordIsCorrect) {
+      ctx.logs[ctx.cpt].perceptionTime = timeTracker.endTime - timeTracker.startTime;
+      if(ctx.cpt === 269){
+        d3.selectAll('.place-Holder').remove();
+        finishExperiment();
+      }
+      if (ctx.trials[ctx.cpt + 1][ctx.participantIndex] === ctx.participant) {
+        nextTrial();
+      }
+      else {
+        d3.selectAll('.place-Holder').remove();
+        finishExperiment();
+      }
+    }
+    else {
+      ctx.logs[ctx.cpt].error++;
+      nextTrial();
+    }
   }
-  else {
-    ctx.logs[ctx.cpt].error++;
-  }
-  timeTracker.endTime = timeTracker.startTime = 0;
-  nextTrial();
+
 }
 
+var finishExperiment = function () {
 
+  ctx.state = state.FINISH_EXPERIMENT;
+
+  d3.select("#instructions")
+    .append('p')
+    .classed('instr', true)
+    .html("The Experiment is complete.<br> <b>Thank you</b> ");
+}
 
 var nextTrial = function () {
 
   if (recordIsCorrect) {
     ctx.cpt++;
   }
+
+  if(ctx.cpt == -1){
+    ctx.cpt++;
+  }
   //setting to default
   shapes = [];
+  timeTracker.endTime = timeTracker.startTime = 0;
   var objCount = 0;
   d3.selectAll(".place-Holder").remove();
 
