@@ -137,8 +137,8 @@ var startTrial = function () {
     }
   }
   else if (vv == "Color_Size") {
-    var temp = objCount-1;
-    if(temp%2 !== 0){
+    var temp = objCount - 1;
+    if (temp % 2 !== 0) {
       console.log("not even");
       shapes.push(
         {
@@ -146,22 +146,40 @@ var startTrial = function () {
           color: (targetColor === "light" ? "dark" : "light"),
           target: false
         });
+      for (var i = 0; i < (temp / 2) - 1; i++) {
+        shapes.push(
+          {
+            size: targetSize,
+            color: (targetColor === "light" ? "dark" : "light"),
+            target: false
+          });
+      }
+      for (var i = 0; i < (temp / 2) - 1; i++) {
+        shapes.push(
+          {
+            size: (targetSize === "small" ? "large" : "small"),
+            color: targetColor,
+            target: false
+          });
+      }
     }
-    for (var i = 0; i < (temp/2)-1; i++) {
-      shapes.push(
-        {
-          size: targetSize,
-          color: (targetColor === "light" ? "dark" : "light"),
-          target: false
-        });
-    }
-    for (var i = 0; i < (temp/2)-1; i++) {
-      shapes.push(
-        {
-          size: (targetSize === "small" ? "large" : "small"),
-          color: targetColor,
-          target: false
-        });
+    else {
+      for (var i = 0; i < (temp / 2); i++) {
+        shapes.push(
+          {
+            size: targetSize,
+            color: (targetColor === "light" ? "dark" : "light"),
+            target: false
+          });
+      }
+      for (var i = 0; i < (temp / 2); i++) {
+        shapes.push(
+          {
+            size: (targetSize === "small" ? "large" : "small"),
+            color: targetColor,
+            target: false
+          });
+      }
     }
   }
 
@@ -186,10 +204,20 @@ var downloadLogs = function (event) {
   event.preventDefault();
   var csvContent = "data:text/csv;charset=utf-8,";
 
+
   ctx.logs.forEach(function (rowData) {
-    var row = rowData.join(",");
+    var temp = Object.values(rowData);
+    var row = temp.join(',');
     csvContent += row + "\r\n";
   })
+
+  var encodeUri = encodeURI(csvContent);
+
+  var downloadLink = d3.select("form")
+    .append('a')
+    .attr('href', encodeUri)
+    .attr('download', "Logs_" + ctx.participant + "_" + Date.now() + ".csv")
+    .text("Logs_" + ctx.participant + "_" + Date.now() + ".csv");
 }
 
 var showPlaceholders = function () {
